@@ -6,17 +6,25 @@ import (
 )
 
 type DressService struct {
-	repo *repository.DressRepository
+	DressRepo *repository.DressRepository
 }
 
-func DressServiceInstance() *DressService {
-	dressRepo := repository.NewProductRepository(repository.DB)
-
-	return &DressService{
-		repo: dressRepo,
-	}
+func DressServiceInstance(repo *repository.DressRepository) *DressService {
+	return &DressService{DressRepo: repo}
 }
 
 func (s *DressService) AddDress(body models.Dress) error {
-	return s.repo.CreateDress(&body)
+	return s.DressRepo.CreateDress(&body)
+}
+
+func (s *DressService) FindDress() ([]models.Dress, error) {
+	return s.DressRepo.FindDress()
+}
+
+func (s *DressService) UpdatesPartial(entity *models.Dress, id uint, updates map[string]interface{}) error {
+	return s.DressRepo.UpdatePartialDress(entity, id, updates)
+}
+
+func (s *DressService) DeletePartialDress(entity *models.Dress, id uint) error {
+	return s.DressRepo.DeletePartialDress(entity, id)
 }
