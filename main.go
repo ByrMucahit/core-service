@@ -1,10 +1,10 @@
 package main
 
 import (
-	"core-service/database"
-	"net/http"
-
+	"core-service/endpoints"
+	"core-service/repository"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 var db = make(map[string]string)
@@ -13,7 +13,7 @@ func setupRouter() *gin.Engine {
 	// Disable Console Color
 	// gin.DisableConsoleColor()
 	r := gin.Default()
-	database.ConnectDatabase()
+	repository.ConnectDatabase()
 	// Ping test
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
@@ -29,6 +29,8 @@ func setupRouter() *gin.Engine {
 			c.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
 		}
 	})
+
+	r.POST("/core-service/users/dress", endpoints.CreateDressHandler)
 
 	// Authorized group (uses gin.BasicAuth() middleware)
 	// Same than:
