@@ -3,6 +3,7 @@ package main
 import (
 	"core-service/endpoints"
 	"core-service/repository"
+	"core-service/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -29,8 +30,13 @@ func setupRouter() *gin.Engine {
 			c.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
 		}
 	})
-
-	r.POST("/core-service/users/dress", endpoints.CreateDressHandler)
+	dressRepository := repository.NewProductRepository(repository.DB)
+	dressService := service.DressServiceInstance(dressRepository)
+	dressHandler := endpoints.NewDressHandler(dressService)
+	r.POST("/core-service/users/dress", dressHandler.CreateDressHandler)
+	r.GET("/core-service/users/dress", dressHandler.GetAllDresses)
+	r.PUT("/core-service/users/:id/dress", dressHandler.UpdatePartialDressById)
+	r.DELETE("/core-service/users/:id/dress", dressHandler.DeletePartialDressById)
 
 	// Authorized group (uses gin.BasicAuth() middleware)
 	// Same than:
