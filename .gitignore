@@ -1,0 +1,43 @@
+# Binaries & Build Artifacts
+/bin/
+*.exe
+*.out
+*.test
+*.o
+*.a
+*.so
+
+# Go Modules & Dependencies
+/go.sum
+/go.work.sum
+/vendor/
+
+# Compiled files
+*.exe
+*.dll
+*.dylib
+*.so
+
+# Logs & Debugging
+*.log
+*.trace
+*.prof
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# IDE & Editor Config Files
+.vscode/
+.idea/
+*.iml
+
+# OS & Miscellaneous
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
