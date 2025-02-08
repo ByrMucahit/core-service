@@ -1,21 +1,75 @@
 package main
 
 import (
-  "fmt"
+	"core-service/database"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
+var db = make(map[string]string)
+
+func setupRouter() *gin.Engine {
+	// Disable Console Color
+	// gin.DisableConsoleColor()
+	r := gin.Default()
+	database.ConnectDatabase()
+	// Ping test
+	r.GET("/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong")
+	})
+
+	// Get user value
+	r.GET("/user/:name", func(c *gin.Context) {
+		user := c.Params.ByName("name")
+		value, ok := db[user]
+		if ok {
+			c.JSON(http.StatusOK, gin.H{"user": user, "value": value})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
+		}
+	})
+
+	// Authorized group (uses gin.BasicAuth() middleware)
+	// Same than:
+	// authorized := r.Group("/")
+	// authorized.Use(gin.BasicAuth(gin.Credentials{
+	//	  "foo":  "bar",
+	//	  "manu": "123",
+	//}))
+	authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
+		"foo":  "bar", // user:foo password:bar
+		"manu": "123", // user:manu password:123
+	}))
+
+	/* example curl for /admin with basicauth header
+	   Zm9vOmJhcg== is base64("foo:bar")
+
+		curl -X POST \
+	  	http://localhost:8080/admin \
+	  	-H 'authorization: Basic Zm9vOmJhcg==' \
+	  	-H 'content-type: application/json' \
+	  	-d '{"value":"bar"}'
+	*/
+	authorized.POST("admin", func(c *gin.Context) {
+		user := c.MustGet(gin.AuthUserKey).(string)
+
+		// Parse JSON
+		var json struct {
+			Value string `json:"value" binding:"required"`
+		}
+
+		if c.Bind(&json) == nil {
+			db[user] = json.Value
+			c.JSON(http.StatusOK, gin.H{"status": "ok"})
+		}
+	})
+
+	return r
+}
 
 func main() {
-  //TIP <p>Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined text
-  // to see how GoLand suggests fixing the warning.</p><p>Alternatively, if available, click the lightbulb to view possible fixes.</p>
-  s := "gopher"
-  fmt.Println("Hello and welcome, %s!", s)
-
-  for i := 1; i <= 5; i++ {
-	//TIP <p>To start your debugging session, right-click your code in the editor and select the Debug option.</p> <p>We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-	// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.</p>
-	fmt.Println("i =", 100/i)
-  }
+	r := setupRouter()
+	// Listen and Server in 0.0.0.0:8080
+	r.Run(":8080")
 }
